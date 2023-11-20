@@ -1,0 +1,156 @@
+/*Realizado por: Sgos. César Stalin Valdiviezo Castro*/
+.dheaderMount {
+   border: 1px solid #558ee1;
+   border-top-left-radius: 15px;
+   border-top-right-radius: 15px;
+   padding: 10px;
+   background-color: #558ee1;
+   width: 90%;
+}
+.dheader2 {
+   border: 1px inset #558ee1;
+   border-top-left-radius: 15px;
+   border-top-right-radius: 15px;
+   padding: 10px;
+   background-color: #558ee1;
+   color: #F8F8FF;
+   text-align: center;
+   font-weight: bold;
+}
+.dbody {
+   border: 1px inset #558ee1;
+   padding: 10px;
+}
+.dfoot {
+   border: 1px inset #558ee1;
+   border-bottom-left-radius: 15px;
+   border-bottom-right-radius: 15px;
+   padding: 10px;
+   background-color: #558ee1;
+}
+.alertaRed {
+   border: 1px inset #fa1313;
+   border-top-left-radius: 15px;
+   border-top-right-radius: 15px;
+   border-bottom-left-radius: 15px;
+   border-bottom-right-radius: 15px;
+   /*padding: 10px;*/
+   background-color: #fa1313;
+}
+.alertaYellow {
+   border: 1px inset #e9f92f;
+   border-top-left-radius: 15px;
+   border-top-right-radius: 15px;
+   border-bottom-left-radius: 15px;
+   border-bottom-right-radius: 15px;
+   padding: 10px;
+   background-color: #e9f92f;
+}
+.alertaGreen {
+   border: 1px inset #2ae947;
+   border-top-left-radius: 15px;
+   border-top-right-radius: 15px;
+   border-bottom-left-radius: 15px;
+   border-bottom-right-radius: 15px;
+   /*padding: 10px;*/
+   background-color: #2ae947;
+}
+.alertaMensaje {
+   border: 1px solid #dfe1e1;
+   border-top-left-radius: 15px;
+   border-top-right-radius: 15px;
+   border-bottom-left-radius: 15px;
+   border-bottom-right-radius: 15px;
+   padding: 10px;
+   background-color: #dfe1e1;
+}
+.alertaMensajeBlue {
+   border: 1px solid #538fbe;
+   border-top-left-radius: 15px;
+   border-top-right-radius: 15px;
+   border-bottom-left-radius: 15px;
+   border-bottom-right-radius: 15px;
+   padding: 10px;
+   background-color: #538fbe;
+   text-decoration: none;
+   color: #fff;
+   font-weight: bold;
+   font-size: 14px;
+}
+.cuadro3D {
+   display: inline-block;
+   border-top-left-radius: 15px;
+   border-top-right-radius: 15px;
+   text-decoration: none;
+   color: #fff;
+   font-weight: bold;
+   background-color: #538fbe;
+   padding: 20px 70px;
+   /*font-size: 18px;*/
+   border: 1px solid #2d6898;
+   background-image: linear-gradient(bottom, rgb(73, 132, 180) 0%, rgb(97, 155, 203) 100%);
+   background-image: -o-linear-gradient(bottom, rgb(73, 132, 180) 0%, rgb(97, 155, 203) 100%);
+   background-image: -moz-linear-gradient(bottom, rgb(73, 132, 180) 0%, rgb(97, 155, 203) 100%);
+   background-image: -webkit-linear-gradient(bottom, rgb(73, 132, 180) 0%, rgb(97, 155, 203) 100%);
+   background-image: -ms-linear-gradient(bottom, rgb(73, 132, 180) 0%, rgb(97, 155, 203) 100%);
+}
+#modal {
+   background: rgba(0, 0, 0, 0.9);
+   color: #fff;
+   position: fixed;
+   top: -100vh;
+   left: 0;
+   height: 100vh;
+   width: 100vw;
+   transition: all .5s;
+}
+#modal p {
+   width: 60%;
+   height: 40%;
+   position: absolute;
+   top: 0;
+   left: 0;
+   bottom: 0;
+   right: 0;
+   margin: auto;
+   font-size: 1.5em;
+   text-align: center;
+}
+#mostrar-modal {
+   display: none;
+}
+#mostrar-modal+label {
+   background: steelblue;
+   display: table;
+   margin: auto;
+   color: #fff;
+   line-height: 3;
+   padding: 0 1em;
+   text-transform: uppercase;
+   cursor: pointer;
+}
+#mostrar-modal+label:hover {
+   background: #38678f;
+}
+#mostrar-modal:checked~#modal {
+   top: 0;
+}
+#cerrar-modal {
+   display: none;
+}
+#cerrar-modal+label {
+   position: absolute;
+   top: 1em;
+   right: 1em;
+   z-index: 100;
+   color: #fff;
+   font-weight: bold;
+   cursor: pointer;
+   background: tomato;
+   width: 25px;
+   height: 25px;
+   line-height: 25px;
+   text-align: center;
+   border-radius: 50%;
+   transition: all .5s;
+}

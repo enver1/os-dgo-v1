@@ -1,0 +1,110 @@
+<?php
+$directorioMantenimiento = __FILE__;
+$elementos        = explode('/', $directorioMantenimiento);
+$directorio = $elementos[3] . '/' . $elementos[4] . '/' . $elementos[5];
+
+
+//formularioo
+
+session_start();
+header('Content-Type: text/html; charset=UTF-8');
+include '../../../funciones/db_connect.inc.php';
+include_once '../../../clases/autoload.php';
+include_once 'config.php';
+
+$formCerrarOperativo = new FormCerrarOperativos;
+$dt                  = new DateTime('now', new DateTimeZone('America/Guayaquil'));
+$hdrEvento           = new HdrEvento;
+
+$fechaHoy    = $dt->format('Y-m-d');
+$opc         = strip_tags($_GET['opc']);
+$idHdrEvento = strip_tags($_GET['c']);
+$rowt        = array();
+
+if ($idHdrEvento > 0) {
+    $rowt = $hdrEvento->getCerrarOperativos();
+}
+
+//$formCerrarOperativo->getFormularioCerrarOperativos($conn, $rowt, $idcampo, $opc);
+?>
+<script type="text/javascript" src="<?php echo $directorioC ?>/validacion.js"></script>
+
+
+//*********** grid***
+<?php
+/* MUESTRA LA GRILLA EN LA PARTE INFERIOR DEL FORMULARIO */
+include_once('config.php');
+if (!empty($rs)) {
+?>
+<table id='my-tbl'>
+    <tr>
+
+        <?php foreach ($gridS as $campos => $valor) { ?>
+        <th class="data-th"><?php echo $campos ?></th>
+        <?php } ?>
+        <th class="data-th">Editar</th>
+        <th class="data-th">Eliminar</th>
+    </tr>
+    <?php
+		//loop por cada registro tomando los campos delarreglo $gridS
+		while ($row = $rs->fetch(PDO::FETCH_ASSOC)) {
+			echo "<tr class='data-tr' align='center'>";
+			foreach ($gridS as $campos => $valor) {
+				echo '<td>' . $row[$valor] . '</td>';
+			}
+			if (isset($_SESSION['privilegios']) and substr($_SESSION['privilegios'], 1, 1) == 1) {
+				echo '<td><a href="javascript:void(0);" onclick="getregistro(' . $row[$idcampo] . ')">Editar</a></td>';
+			} else {
+				echo '<td>&nbsp;</td>';
+			}
+			if (isset($_SESSION['privilegios']) and substr($_SESSION['privilegios'], 2, 1) == 1) {
+				echo '<td><a href="javascript:void(0);" onclick="return delregistro(' . $row[$idcampo] . ')">Eliminar</a></td>';
+			} else {
+				echo '<td>&nbsp;</td>';
+			}
+			echo "</tr>";
+		}
+		?>
+</table>
+<br />
+<?php } ?>
+
+
+
+/***** aplicacion ***
+<?php
+if (isset($_SESSION['usuarioAuditar'])) {
+    include_once '../funciones/funciones_generales.php';
+    include_once '../clases/autoload.php';
+    include_once 'config.php';
+
+    $hdrEvento = new HdrEvento;
+
+    $tgrid  = $directorio . '/grid.php'; // php para mostrar la grid
+    $tforma = $directorio . '/formulario.php'; // php para mostrar el formulario en la parte superior
+    $tborra = $directorio . '/borra.php'; // php para borrar un registro
+    $tgraba = $directorio . '/graba.php'; // php para grabar un registro
+    $tprint = $directorio . '/imprime.php'; // nombre del php que imprime los registros
+
+    $sqltable = urlencode($hdrEvento->getSqlOperativosAbiertos());
+    ?>
+<div id='formulario'>
+    <img src="../funciones/paginacion/images/ajax-loader.gif" />
+</div>
+<div id='retrieved-data'>
+    <img src="../funciones/paginacion/images/ajax-loader.gif" />
+</div>
+<div>
+    <form id="edita">
+        <table width="100%">
+            <tr>
+                <td align="center"><input type="button" name="enviar" onclick="grabaregistro(1,'idDglAsigDevol')" value="CerrarOp" class="boton_save"></td>
+            </tr>
+        </table>
+    </form>
+</div>
+<?php // include_once 'js/ajaxuidIgpn.php';
+} else {
+    header('Location: imprime.php');
+}
+?>

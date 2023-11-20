@@ -1,0 +1,225 @@
+//*************** FORMULARIO ***************
+<?php
+session_start();
+include '../../../funciones/db_connect.inc.php';
+include_once('../../../funciones/funcion_select.php');
+/*-------------------------------------------------*/
+$tgraba = 'modelo/graba.php'; // *** CAMBIAR *** nombre del php para insertar o actualizar un registro
+$Ntabla = 'genModelo'; // *** CAMBIAR *** Nombre de la Tabla
+$directorio = 'modulos/modelo'; // *** CAMBIAR ***
+/*-------------------------------------------------*/
+$idcampo = ucfirst($Ntabla); // Nombre del Id de la Tabla
+if (isset($_GET['c'])) {
+    $sql = "select * from " . $Ntabla . " where id" . $idcampo . "='" . $_GET['c'] . "'";
+    $rs = $conn->query($sql);
+    $rowt = $rs->fetch(PDO::FETCH_ASSOC);
+}
+/*
+* Aqui se incluye el formulario de edicion
+*/
+?>
+<script type="text/javascript" src="<?php echo $directorio ?>/validacion.js"></script>
+<form name="edita" id="edita" method="post">
+    <table width="100%" border="0">
+        <tr>
+            <td class="etiqueta">C&oacute;digo:</td>
+            <td><input type="text" name="id<?php echo $idcampo ?>" readonly="readonly"
+                    value="<?php echo isset($rowt['id' . $idcampo]) ? $rowt['id' . $idcampo] : '' ?>"
+                    class="inputSombra" style="width:80px" /></td>
+        </tr>
+        <tr>
+            <td class="etiqueta">Marca:</td>
+            <td><?php echo generaComboSimple($conn, 'genMarca', 'idGenMarca', 'descripcion', isset($rowt['idGenMarca']) ? $rowt['idGenMarca'] : ''); ?>
+            </td>
+        </tr>
+        <tr>
+            <?php /*---------------------------------------------------*/
+            //  *** CAMBIAR ***  
+            ?>
+            <td class="etiqueta">Descripci&oacute;n:</td>
+            <td><input type="text" name="descripcion" size="60"
+                    value="<?php echo isset($rowt['descripcion']) ? $rowt['descripcion'] : '' ?>" class="inputSombra" />
+            </td>
+        </tr>
+        <tr>
+            <?php /*----------------------------------------------------*/ ?>
+            <td colspan="2">
+                <hr /><input type="hidden" name="opc" value="<?php echo $_GET['opc'] ?>" />
+            </td>
+        </tr>
+        <?php include_once('../../../funciones/botonera.php'); ?>
+</form>
+
+
+//************* borra */
+
+
+
+/////////////////////// graba////administrador
+<?php
+session_start();
+include '../../../funciones/db_connect.inc.php';
+include_once('../../../funciones/redirect.php');
+/*----------------------------*/
+$sNtabla = 'genModelo'; //  *** CAMBIAR *** Nombre de la tabla
+/*-----------------------------*/
+$idcampo = ucfirst($sNtabla); // Nombre del Id de la Tabla
+if ($_POST['id' . $idcampo] == '' or $_POST['id' . $idcampo] == 0) {
+    $sql = "select * from " . $sNtabla . " where descripcion='" . $_POST['descripcion'] . "' and idGenMarca=" . $_POST['idGenMarca'];
+    $rs = $conn->query($sql);
+    if ($row = $rs->fetch(PDO::FETCH_ASSOC))
+        redirect('../../../funciones/error.php?errno=1');
+    else {
+        /*------------------------------*/
+        // *** CAMBIAR ***
+        $sentencia = $conn->prepare("insert into " . $sNtabla . " (idGenMarca,descripcion,usuario,ip) values  ( ?,?,?,?)");
+        $sentencia->bindParam(1, $_POST['idGenMarca']);
+        $sentencia->bindParam(2, $_POST['descripcion']);
+        $sentencia->bindParam(3, $_SESSION['usuarioAuditar']);
+        $sentencia->bindParam(4, $ip);
+        $sentencia->execute() or die('error');
+    }
+} else {
+    $sql = "select * from " . $sNtabla . " where descripcion='" . $_POST['descripcion'] . "' and id" . $idcampo . "!=" . $_POST['id' . $idcampo] . " and idGenMarca=" . $_POST['idGenMarca'];
+    //echo $sql;
+    $rs = $conn->query($sql);
+    if ($row = $rs->fetch(PDO::FETCH_ASSOC))
+        redirect('../../../funciones/error.php?errno=1');
+    else {
+        $sentencia = $conn->prepare("update " . $sNtabla . " set idGenMarca=?,descripcion=?,usuario=?,fecha=now(),ip=? where id" . $idcampo . "=?");
+        $sentencia->bindParam(1, $_POST['idGenMarca']);
+        $sentencia->bindParam(2, $_POST['descripcion']);
+        $sentencia->bindParam(3, $_SESSION['usuarioAuditar']);
+        $sentencia->bindParam(4, $ip);
+        $sentencia->bindParam(5, $_POST['id' . $idcampo]);
+        /*-----------------------------------*/
+        $sentencia->execute() or die('error');
+    }
+}
+?>
+
+
+//*************** grid */
+<?php
+if (!isset($_SESSION)) {
+    session_start();
+}
+/*-----------------------------------------*/
+$sNtabla = 'genModelo'; // *** CAMBIAR ** Nombre de la tabla;
+/*------------------------------------------*/
+// Personalizar de acuerdo al numero de columnas que se muestran en el grid, tanto en los titulos como en
+// las filas 
+/*-----------------------------------------*/
+$idcampo = ucfirst($sNtabla); // Nombre del Id de la Tabla primera mayuscula
+?>
+<table id='my-tbl'>
+    <tr>
+        <th class="data-th">Codigo</th>
+        <th class="data-th">Marca</th>
+        <th class="data-th">Modelo</th>
+        <th class="data-th">Editar</th>
+        <th class="data-th">Eliminar</th>
+    </tr>
+    <?php
+    //loop por cada registro
+    while ($row = $rs->fetch(PDO::FETCH_ASSOC)) {
+        echo "<tr class='data-tr' align='center'>";
+        echo "<td>" . $row['id' . $idcampo] . "</td>";
+        echo "<td>{$row['marca']}</td>";
+        echo "<td>{$row['descripcion']}</td>";
+        /*------ De aqui para abajo NO modificar ---------------*/
+        if (isset($_SESSION['privilegios']) and substr($_SESSION['privilegios'], 1, 1) == 1) {
+            echo '<td><a href="javascript:void(0);" onclick="getregistro(' . $row['id' . $idcampo] . ')">Editar</a></td>';
+        } else {
+            echo '<td>&nbsp;</td>';
+        }
+        if (isset($_SESSION['privilegios']) and substr($_SESSION['privilegios'], 2, 1) == 1) {
+            echo '<td><a href="javascript:void(0);" onclick="return delregistro(' . $row['id' . $idcampo] . ')">Eliminar</a></td>';
+        } else {
+            echo '<td>&nbsp;</td>';
+        }
+        echo "</tr>";
+    }
+    ?>
+</table>
+<br />
+
+
+//************** imprime */
+<?php
+session_start();
+include_once('../../../funciones/db_connect.inc.php');
+include_once("../../../fpdf/fpdf.php");
+include_once('../../../funciones/clasePDF.php');
+$nombreReporte = 'CATALOGO DE MODELOS DE VEHICULOS'; // *** CAMBIAR *** TITULO DEL REPORTE
+/* Contiene la instruccion select que trae los datos de la tabla */
+// *** CAMBIAR ***/
+$sql = "select 
+	a.idGenModelo cero,
+	b.descripcion uno,
+	a.descripcion dos
+	from genModelo a , genMarca
+	where a.idGenMarca=b.idGenMarca
+	order by 2,3 ";
+//echo $sql;
+$rs = $conn->query($sql);
+$row = $rs->fetchAll();
+
+$title = 'www.policiaecuador.gob.ec/siipne3';
+
+$pdf = new PDF();
+//$pdf->AddPage('L'); //si Queremos tipo landscape horizontal
+$pdf->AddPage();
+$pdf->SetFont('Arial', '', 14);
+$pdf->Ln();
+//$pdf->WriteHTML('');
+$pdf->titulo('SISTEMA INFORMATICO INTEGRADO SIIPNE 3w', 14, 255, 255, 255);
+$pdf->titulo($nombreReporte, 12, 200, 220, 255, 'C');
+$pdf->SetFont('Arial', '', 10);
+
+//*** CAMBIAR *** cabeceras de las columnas del reporte
+$header = array('Codigo', 'Marca', 'Modelo');
+//*** CAMBIAR *** 
+/* Parametros que se envian : 
+	$header array con las cabeceras de las columnas
+	$row array con los registros (filas)
+	$n1, n2, n3 enteros con los parametros de los valores RGB  para el color de fondo de la cabecera 
+	$n4 entero con el valor del color del texto 0=negro
+	$n5,...,nn entero con el ancho de cada columna a mostrar*/
+$pdf->FancyTable($header, $row, 200, 220, 255, 0, 3, 15, 80, 80, 0);
+/*-------------------------------------------------------*/
+$pdf->Output();
+
+
+?>
+
+//*********************modelo - aplñicacion */
+<?php
+/* Aqui van los parametros a cambiar en cada formulario */
+/* path del directorio del modulo */
+$directorio = 'modelo'; // ** CAMBIAR **
+/* Nombre de la tabla  */
+$sNtabla = 'genModelo'; // ** CAMBIAR **
+/*---------------------------------------------*/
+/* Para el Id de la tabla convierte la primera letra en mayuscula*/
+$idcampo = ucfirst($sNtabla);
+/* Select para mostrar los datos en el grid */
+/*-----------------** CAMBIAR **-----------------------------------------------------------------*/
+$sqltable = urlencode("select a.id" . $idcampo . ",b.descripcion marca,a.descripcion from " . $sNtabla . " a,genMarca b where a.idGenMarca=b.idGenMarca order by 2,3");
+/*-----------------------------------------------------------------------------------------------*/
+/*  Esta parte se mantiene para todos los modulos */
+$tgrid = $directorio . '/grid.php'; // php para mostrar la grid
+$tforma = $directorio . '/formulario.php'; // php para mostrar el formulario en la parte superior
+$tborra = $directorio . '/borra.php'; // php para borrar un registro
+$tgraba = $directorio . '/graba.php'; // php para grabar un registro
+$tprint = $directorio . '/imprime.php'; // nombre del php que imprime los registros
+/*  Fin de configuraciones    */
+?>
+<div id='formulario'>
+    <img src="../funciones/paginacion/images/ajax-loader.gif" />
+</div>
+<div id='retrieved-data'>
+    <img src="../funciones/paginacion/images/ajax-loader.gif" />
+</div>
+<?php include_once('../js/ajaxuid.php'); // Este archivo contiene las funciones de ajax para update, insert, delete, y edit 
+?>

@@ -1,0 +1,123 @@
+<?php
+session_start();
+header('Content-Type: text/html; charset=UTF-8');
+include '../../../funciones/db_connect.inc.php';
+include_once('../../../funciones/funcion_select.php');
+$tgraba='geosenplades/graba.php'; // nombre del php para insertar o actualizar un registro
+$Ntabla='genGeoSenplades';
+$idcampo=ucfirst($Ntabla);
+$directorio='modulos/geosenplades';
+if (isset($_GET['c']))
+	{
+		$sql="select a.*,b.descripcion padre, b.siglasGeoSenplades siglasPadre from ".$Ntabla." a left outer join genGeoSenplades b on b.idGenGeoSenplades=a.gen_idGenGeoSenplades 
+		where a.id".$idcampo."='".$_GET['c']."'";
+	$rs=$conn->query($sql);
+	$rowt = $rs->fetch(PDO::FETCH_ASSOC);
+	$siglaTotal = $rowt['siglasGeoSenplades'];
+	$siglaPadre = $rowt['siglasPadre'];
+	$siglaHijo = str_replace($siglaPadre."-","",$siglaTotal);
+	
+	}
+/*
+* Aqui se incluye el formulario de edicion
+*/
+?>
+<script type="text/javascript" src="<?php echo $directorio ?>/validacion.js"></script>
+<script>
+$(document).ready(function(){
+	$('#tpais').tree({
+		onClick: function(node){
+		var node = $('#tpais').tree('getSelected');
+		var codigoSenplades = node.attributes[2];
+		var siglaHijo = node.attributes[1];
+		var siglaPadre = node.attributes[0]; 
+		var TipoGeoSenplades = node.attributes[3];
+				
+		$('#paisDesc').attr('value', node.text);
+		$('#paisCdg').attr('value', node.id);
+				
+		$('#siglasParte1').attr('value',siglaHijo);
+		
+		/*if (siglaHijo == siglaPadre)
+		{
+			siglaPadre=' ';
+			$('#siglasParte1').attr('value',siglaPadre); //Padre
+ 	    	$('#siglasGeoSenplades').attr('value',siglaHijo); //Hijo
+			alert(siglaHijo);
+		}
+		else
+		{
+			var text = siglaHijo;
+			var new_text = text.replace(siglaPadre + "-","");
+			var siglaCadena = new_text;
+			$('#siglasParte1').attr('value',siglaPadre); //Padre
+ 	    	$('#siglasGeoSenplades').attr('value',siglaCadena); //Hijo	
+		}*/
+		//$('#siglasParte1').attr('value',node.attributes[0]); //Padre
+	  	//$('#siglasGeoSenplades').attr('value',node.attributes[1]); //Hijo
+		
+		//$('#codigoSenplades').attr('value',codigoSenplades);
+		$("html, body").animate({ scrollTop: 0 }, "slow");
+		}
+	});
+ });
+ </script>
+
+<table width="100%" border="0">
+<tr><td width="55%">
+<form name="edita" id="edita" method="post">
+  <table width="100%" border="0">
+	<tr>
+		<td width="20%">C&oacute;digo:</td>
+		<td width="80%">
+      <input type="text" name="id<?php echo $idcampo ?>"  readonly="readonly" 
+      	value="<?php echo isset($rowt['id'.$idcampo])?$rowt['id'.$idcampo]:'' ?>" />
+    </td>
+	</tr>
+  <tr>
+		<td>Descripci&oacute;n:</td>
+		<td>
+    	<input type="text" name="descripcion"  size="60" value="<?php echo isset($rowt['descripcion'])?$rowt['descripcion']:'' ?>" />
+    </td>
+	</tr>
+  <tr>
+		<td>Area Senplades:</td>
+		<td>
+      <input type="text" readonly="readonly" size="5" name="paisCdg" id="paisCdg"
+        value="<?php echo isset($rowt['gen_idGenGeoSenplades'])?$rowt['gen_idGenGeoSenplades']:'' ?>" />
+      <input type="text" id="paisDesc" name="paisDesc" value="<?php echo isset($rowt['padre'])?$rowt['padre']:'' ?>"  size="48"/>->
+    </td>
+	</tr>
+  <tr>
+		<td>Tipo Division Senplades:</td>
+		<td>
+			<?php echo generaComboSimple($conn,'genTipoGeoSenplades','idGenTipoGeoSenplades','descripcion',isset($rowt['idGenTipoGeoSenplades'])?									$rowt['idGenTipoGeoSenplades']:''); ?></td>
+	</tr>
+    <tr>
+		<td>Siglas Geográficas Senplades:</td>
+		<td><input type="text" id="siglasParte1" name="siglasParte1"  size="20"  readonly="readonly" value="<?php echo isset($rowt['siglasPadre'])?$rowt['siglasPadre']:'' ?>" />
+    	<input type="text" name="siglasGeoSenplades" id="siglasGeoSenplades" size="40" value="<?php echo isset($siglaHijo)?$siglaHijo:'' ?>" />
+    	</td>
+	</tr>
+     <tr>
+		<td>Código Senplades:</td>
+		<td>
+    	<input type="text" name="codigoSenplades" id="codigoSenplades"  size="60" value="<?php echo isset($rowt['codigoSenplades'])?$rowt['codigoSenplades']:'' ?>" />
+    	</td>
+     
+   	    </td>
+	</tr>
+    
+  <tr>
+		<td colspan="2" ><hr /><input type="hidden" name="opc" value="<?php echo $_GET['opc'] ?>" /></td>
+	</tr>
+  </table>
+<?php include_once('../../../funciones/botonera.php'); ?>
+</form>
+</td>
+<td width="45%"><div style=" overflow: scroll; height:250px">
+		<ul id="tpais" class="easyui-tree" animate="true" style="font-size:10px"
+        	url="<?php echo $directorio ?>/tree_unidad_todo.php?id=<?php echo (isset($_GET['id'])?$_GET['id']:0) ?>">
+		</ul></div>
+</td>
+</tr></table>

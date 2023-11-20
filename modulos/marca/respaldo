@@ -1,0 +1,378 @@
+//FORMULARIO
+<?php
+session_start();
+include '../../../funciones/db_connect.inc.php';
+include_once('../../../funciones/funcion_select.php');
+/*-------------------------------------------------*/
+$tgraba = 'marca/graba.php'; // *** CAMBIAR *** nombre del php para insertar o actualizar un registro
+$Ntabla = 'genMarca'; // *** CAMBIAR *** Nombre de la Tabla
+$directorio = 'modulos/marca'; // *** CAMBIAR ***
+/*-------------------------------------------------*/
+$idcampo = ucfirst($Ntabla); // Nombre del Id de la Tabla
+if (isset($_GET['c'])) {
+	$sql = "select * from " . $Ntabla . " where id" . $idcampo . "='" . $_GET['c'] . "'";
+	$rs = $conn->query($sql);
+	$rowt = $rs->fetch(PDO::FETCH_ASSOC);
+}
+/*
+* Aqui se incluye el formulario de edicion
+*/
+?>
+
+<form name="edita" id="edita" method="post">
+    <table width="100%" border="0">
+        <tr>
+            <td class="etiqueta">C&oacute;digo:</td>
+            <td><input type="text" name="id<?php echo $idcampo ?>" readonly="readonly"
+                    value="<?php echo isset($rowt['id' . $idcampo]) ? $rowt['id' . $idcampo] : '' ?>"
+                    class="inputSombra" style="width:80px" /></td>
+        </tr>
+        <tr>
+            <?php /*---------------------------------------------------*/
+			//  *** CAMBIAR ***  
+			?>
+            <td class="etiqueta">Descripci&oacute;n:</td>
+            <td><input type="text" name="descripcion" size="60"
+                    value="<?php echo isset($rowt['descripcion']) ? $rowt['descripcion'] : '' ?>" class="inputSombra" />
+            </td>
+        </tr>
+        <tr>
+            <?php /*----------------------------------------------------*/ ?>
+            <td colspan="2">
+                <hr /><input type="hidden" name="opc" value="<?php echo $_GET['opc'] ?>" />
+            </td>
+        </tr>
+        <?php include_once('../../../funciones/botonera.php'); ?>
+</form>
+
+
+
+// **************************** GRIDD **************************
+
+<?php
+if (!isset($_SESSION)) {
+	session_start();
+}
+/*-----------------------------------------*/
+$sNtabla = 'genMarca'; // *** CAMBIAR ** Nombre de la tabla;
+/*------------------------------------------*/
+// Personalizar de acuerdo al numero de columnas que se muestran en el grid, tanto en los titulos como en
+// las filas 
+/*-----------------------------------------*/
+$idcampo = ucfirst($sNtabla); // Nombre del Id de la Tabla primera mayuscula
+?>
+<table id='my-tbl'>
+    <tr>
+        <th class="data-th">Codigo</th>
+        <th class="data-th">Descripcion</th>
+        <th class="data-th">Editar</th>
+        <th class="data-th">Eliminar</th>
+    </tr>
+    <?php
+	//loop por cada registro
+	while ($row = $rs->fetch(PDO::FETCH_ASSOC)) {
+		echo "<tr class='data-tr' align='center'>";
+		echo "<td>" . $row['id' . $idcampo] . "</td>";
+		echo "<td>{$row['descripcion']}</td>";
+		/*------ De aqui para abajo NO modificar ---------------*/
+		if (isset($_SESSION['privilegios']) and substr($_SESSION['privilegios'], 1, 1) == 1) {
+			echo '<td><a href="javascript:void(0);" onclick="getregistro(' . $row['id' . $idcampo] . ')">Editar</a></td>';
+		} else {
+			echo '<td>&nbsp;</td>';
+		}
+		if (isset($_SESSION['privilegios']) and substr($_SESSION['privilegios'], 2, 1) == 1) {
+			echo '<td><a href="javascript:void(0);" onclick="return delregistro(' . $row['id' . $idcampo] . ')">Eliminar</a></td>';
+		} else {
+			echo '<td>&nbsp;</td>';
+		}
+		echo "</tr>";
+	}
+	?>
+</table>
+<br />
+
+
+
+//************** aplicacion / marca ******************** */
+<?php
+/* Aqui van los parametros a cambiar en cada formulario */
+/* path del directorio del modulo */
+$directorio = 'marca'; // ** CAMBIAR **
+/* Nombre de la tabla  */
+$sNtabla = 'genMarca'; // ** CAMBIAR **
+/*---------------------------------------------*/
+/* Para el Id de la tabla convierte la primera letra en mayuscula*/
+$idcampo = ucfirst($sNtabla);
+/* Select para mostrar los datos en el grid */
+/*-----------------** CAMBIAR **-----------------------------------------------------------------*/
+$sqltable = "select a.id" . $idcampo . ",a.descripcion from " . $sNtabla . " a order by 2";
+print_r($sqltable);
+
+/*-----------------------------------------------------------------------------------------------*/
+/*  Esta parte se mantiene para todos los modulos */
+$tgrid = $directorio . '/grid.php'; // php para mostrar la grid
+$tforma = $directorio . '/formulario.php'; // php para mostrar el formulario en la parte superior
+$tborra = $directorio . '/borra.php'; // php para borrar un registro
+$tgraba = $directorio . '/graba.php'; // php para grabar un registro
+$tprint = $directorio . '/imprime.php'; // nombre del php que imprime los registros
+/*  Fin de configuraciones    */
+?>
+<script type="text/javascript" src="modulos/marca/validacion.js"></script>
+<div id='formulario'>
+    <img src="../funciones/paginacion/images/ajax-loader.gif" />
+</div>
+<div id='retrieved-data'>
+    <img src="../funciones/paginacion/images/ajax-loader.gif" />
+</div>
+<?php include_once('../js/ajaxuid.php'); // Este archivo contiene las funciones de ajax para update, insert, delete, y edit 
+?>
+
+
+//***************** graba */
+
+<?php
+session_start();
+include '../../../funciones/db_connect.inc.php';
+include_once('../../../funciones/redirect.php');
+$ip = realIP();
+/*----------------------------*/
+$sNtabla = 'genMarca'; //  *** CAMBIAR *** Nombre de la tabla
+/*-----------------------------*/
+$idcampo = ucfirst($sNtabla); // Nombre del Id de la Tabla
+if ($_POST['id' . $idcampo] == '' or $_POST['id' . $idcampo] == 0) {
+
+
+	$sql = "select * from " . $sNtabla . " where descripcion='" . $_POST['descripcion'] . "'";
+	$rs = $conn->query($sql);
+	if ($row = $rs->fetch(PDO::FETCH_ASSOC)) {
+		print_r("holaaa 1");
+		redirect('../../../funciones/error.php?errno=1');
+	} else {
+		print_r("holaaa 2");
+		/*------------------------------*/
+		// *** CAMBIAR ***
+		$sentencia = $conn->prepare("insert into " . $sNtabla . " (descripcion,usuario,ip) values  ( ?,?,?)");
+		$sentencia->bindParam(1, $_POST['descripcion']);
+		$sentencia->bindParam(2, $_SESSION['usuarioAuditar']);
+		$sentencia->bindParam(3, $ip);
+
+		print_r($ip);
+		die();
+		$sentencia->execute() or die('error');
+	}
+} else {
+	print_r("holaaa 2");
+	$sql = "select * from " . $sNtabla . " where descripcion='" . $_POST['descripcion'] . "' and id" . $idcampo . "!=" . $_POST['id' . $idcampo];
+	//echo $sql;
+	$rs = $conn->query($sql);
+	if ($row = $rs->fetch(PDO::FETCH_ASSOC))
+		redirect('../../../funciones/error.php?errno=1');
+	else {
+		$sentencia = $conn->prepare("update " . $sNtabla . " set descripcion=?,usuario=?,fecha=now(),ip=? where id" . $idcampo . "=?");
+		$sentencia->bindParam(1, $_POST['descripcion']);
+		$sentencia->bindParam(2, $_SESSION['usuarioAuditar']);
+		$sentencia->bindParam(3, $ip);
+		$sentencia->bindParam(4, $_POST['id' . $idcampo]);
+		/*-----------------------------------*/
+		$sentencia->execute() or die('error');
+	}
+}
+
+
+//*******************borra */
+
+<?php
+session_start();
+include '../../../funciones/db_connect.inc.php';
+$tabla='genMarca'; // *** CAMBIAR *** Nombre de la Tabla
+$idcampo=ucfirst($tabla); //Nombre del Id de la tabla
+if($_POST['id']=='' or $_POST['id']==0)
+	{
+		echo '<script language="javascript"> alert("Registro vacio");</script>';
+	}
+else
+	{
+		delete($conn,$_POST['id'],$tabla);
+	}
+?>
+
+
+//********************** validacion */
+
+// JavaScript Document
+/* CAMBIAR al final de este archivo la funcion validate(thisform) con los campos a validar*/
+/* validate_required(campo,mensaje) campo tipo string de minimo 3 caracteres obligatorio
+validate_fecha(campo,mensaje) valida fechas correctas
+validate_enteros(campo,mensaje,valor_minimo,valor_maximo) valida un entero dentro de un rango
+validate_combo(campo,mensaje) valida que un combo sea seleccionado un valor
+validate_cedula(campo,mensaje valida el ingreso de 10 caracteres numericos
+validate_hora(campo) valida el ingreso de la hora en formato hh:mm desde las 00:00 hasta las 23:59
+*/
+
+function validate_fecha(fecha){
+if (fecha != undefined && fecha.value != "" ){
+if (!/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(fecha.value)){
+alert("formato de fecha no valido (aaaa-mm-dd)");
+return false;
+}
+var anio = parseInt(fecha.value.substring(0,4),10);
+var mes = parseInt(fecha.value.substring(5,7),10);
+var dia = parseInt(fecha.value.substring(8),10);
+switch(mes){
+case 1:
+case 3:
+case 5:
+case 7:
+case 8:
+case 10:
+case 12:
+numDias=31;
+break;
+case 4: case 6: case 9: case 11:
+numDias=30;
+break;
+case 2:
+if (comprobarSiBisisesto(anio)){ numDias=29 }else{ numDias=28};
+break;
+default:
+alert("Fecha introducida erroneas");
+return false;
+}
+
+if (dia>numDias || dia==0){
+alert("Fecha introducida erronea");
+return false;
+}
+return true;
+}
+else
+{alert("Fecha introducida erronea");return false;}
+}
+
+function comprobarSiBisisesto(anio){
+if ( ( anio % 100 != 0) && ((anio % 4 == 0) || (anio % 400 == 0))) {
+return true;
+}
+else {
+return false;
+}
+}
+
+function validate_hora(hora){
+if (hora != undefined && hora.value != "" ){
+if (!/^[0-9]{2}:[0-9]{2}$/.test(hora.value)){
+alert("formato de Hora no valido (hh:mm)");
+return false;
+}
+var horas = parseInt(hora.value.substring(0,2),10);
+var minus = parseInt(hora.value.substring(3,5),10);
+if (horas>23 || minus>59){
+alert("Hora introducida erronea");
+return false;
+}
+return true;
+}
+else
+{alert("Hora introducida erronea");return false;}
+}
+
+
+function validate_required(field,alerttxt)
+{
+with (field)
+{
+if (value==null||value=="")
+{
+alert(alerttxt+' no puede estar en blanco');return false;
+}
+else
+{
+if(value.length<3) { alert(alerttxt+' debe tener al menos 3 caracteres');return false; } else { return true; } } } }
+    function validate_enteros(field,alerttxt,minimo,maximo) { with (field) { var checkOK="1234567890." ; var
+    checkStr=field.value; var allValid=true; for (i=0; i < checkStr.length; i++) { ch=checkStr.charAt(i); for (j=0; j <
+    checkOK.length; j++) if (ch==checkOK.charAt(j)) break; if (j==checkOK.length) { allValid=false; break; } } if
+    (!allValid) { alert(alerttxt+" escriba numeros enteros sin decimales"); field.focus(); return (false); } if
+    (parseInt(value)<minimo || parseInt(value)>maximo)
+    {
+    alert(alerttxt+" escriba un numero entre "+minimo+" y "+maximo);
+    return (false);
+    }
+    }
+    }
+
+    function validate_cedula(field,alerttxt)
+    {
+    with (field)
+    {
+    var checkOK = "1234567890";
+    var checkStr = field.value;
+    var allValid = true;
+    for (i = 0; i < checkStr.length; i++) { ch=checkStr.charAt(i); for (j=0; j < checkOK.length; j++) if
+        (ch==checkOK.charAt(j)) break; if (j==checkOK.length) { allValid=false; break; } } if (!allValid) {
+        alert(alerttxt+" escriba solo numeros"); focus(); return (false); } if (checkStr.length!=10) { alert(alerttxt+"
+        debe tener 10 digitos"); return (false); } } } function validate_combo(field,alerttxt) { with (field) { if
+        (value=="0" || value=="" || value==" " ) { alert('Seleccione un valor en el campo '+alerttxt);return false;
+    }
+  else
+    {
+	    return true;
+    }
+  }
+}
+
+/* Esta funcion es para CAMBIAR*/
+function validate(thisform)
+{
+with (thisform)
+  {
+	  if (validate_required(descripcion,"La Descripcion")==false)
+	  {descripcion.focus();return false;}
+  }
+	return true;
+}
+//*****************IMPRIME */
+
+<?php
+session_start();
+include_once('../../../funciones/db_connect.inc.php');
+include_once("../../../fpdf/fpdf.php");
+include_once('../../../funciones/clasePDF.php');
+$nombreReporte='CATALOGO DE MARCAS DE VEHICULOS Y EQUIPO'; // *** CAMBIAR *** TITULO DEL REPORTE
+/* Contiene la instruccion select que trae los datos de la tabla */
+// *** CAMBIAR ***/
+$sql="select 
+	a.idGenMarca cero,
+	a.descripcion uno
+	from genMarca a 
+	order by 2 ";
+//echo $sql;
+$rs=$conn->query($sql);
+$row = $rs->fetchAll();
+
+$title='www.policiaecuador.gob.ec/siipne3';
+
+$pdf=new PDF();
+//$pdf->AddPage('L'); //si Queremos tipo landscape horizontal
+$pdf->AddPage();
+$pdf->SetFont('Arial','',14);
+$pdf->Ln();
+//$pdf->WriteHTML('');
+$pdf->titulo('SISTEMA INFORMATICO INTEGRADO SIIPNE 3w',14,255,255,255);
+$pdf->titulo($nombreReporte,12,200,220,255,'C');
+$pdf->SetFont('Arial','',10);
+
+//*** CAMBIAR *** cabeceras de las columnas del reporte
+$header=array('Codigo','Descripcion');
+//*** CAMBIAR *** 
+/* Parametros que se envian : 
+	$header array con las cabeceras de las columnas
+	$row array con los registros (filas)
+	$n1, n2, n3 enteros con los parametros de los valores RGB  para el color de fondo de la cabecera 
+	$n4 entero con el valor del color del texto 0=negro
+	$n5,...,nn entero con el ancho de cada columna a mostrar*/
+$pdf->FancyTable($header,$row,200,220,255,0,2,15,175,0,0);
+/*-------------------------------------------------------*/
+$pdf->Output();
+
+
+ ?>
